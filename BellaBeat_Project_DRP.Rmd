@@ -1,0 +1,393 @@
+---
+# title: "Bellabeat Data Analyst Project"
+# author: "Dante Patetta"
+# date: "2023-03-29"
+# output: html_document #markdown_document
+---
+
+# Bellabeat Data Analysis Report
+
+By Dante Patetta, March 2023
+
+---
+
+## Summary
+
+Based on the data analysis, the study found that a small percentage (3.4%) of the users have logged their physical activities, and only 43% have logged their sleep activity. The data suggests that users' physical activity levels may be influenced by their daily routines and schedules, with Monday being the day with the highest amount of logged activity and no logged activity on weekends. The total distance captured by the devices was similar throughout the weekdays, but the main variation was explained by the total light activity. According to sleep logged records, the majority of users (78%) are getting enough sleep to support their overall health and well-being.  
+
+To improve engagement with health data, it is recommended to educate users about the importance of tracking their physical activity and sleep. Encouraging users to maintain a consistent level of physical activity throughout the week, even on weekends, and providing personalized recommendations for increasing light activity can help improve overall health outcomes. Additionally, providing users with tips for accurately recording their sleep data and highlighting the benefits of getting enough sleep may encourage more users to track their sleep activity.  
+
+Overall, by increasing user engagement with health data and promoting healthier habits and behaviors, it may be possible to improve overall health outcomes and support users' well-being.  
+
+---
+
+## Presentation
+
+Esteemed founders of Bellabeat, it is my pleasure to report to you as a junior data analyst in the esteemed marketing analyst team. My primary objective is to analyze smart device data to gain valuable insights into how consumers are using smart device trackers. With this information, the board has tasked me with providing high-level recommendations on how these trends can inform Bellabeat's marketing strategy. This is a significant responsibility, and I am committed to working diligently to uncover these insights, which will guide our marketing strategy and reveal new growth opportunities for our company. Your vision and leadership have brought us this far, and I am excited to contribute to your continued success. With your support and guidance, I am confident that we will continue to innovate and grow in the ever-evolving smart device industry.
+
+During this analysis, I will guide you through the key steps necessary to uncover key answers to our principal questions:
+
+1. What are some trends in smart device usage?
+2. How could these trends apply to Bellabeat customers?
+3. How could these trends help influence Bellabeat marketing strategy?
+
+## Bellabeat Company's profile
+* Founded on 2013 by Urška Sršen and Sando Mur
+* It is a high-tech manufacturer of health-focused products for women
+* Bellabeat sells their products and services in the global smart device market
+* Their products aim to empower women with knowledge about their own health and habits by collecting data on activity, sleep, stress and reproductive health
+* The company advertising media investment focuses primary on digital marketing extensively
+
+### Products
+* Bellabeat app
+* Leaf
+* Time
+* Spring
+* Bellabeat membership
+
+---
+
+## Analysis process
+
+I will explore the key steps that I have followed to unlock valuable insights into our operations, products, and customers, which includes the principal steps: **Ask**, **Prepare**, **Process**, **Analyze**, **Share** and **Act**. By the end of this report, there will be a clear understanding of how teh company can leverage data to drive growth and achieve our shared goals
+
+### PHASE 1: Ask
+
+#### 1.1 Business task
+As a junior data analyst for Bellabeat's marketing analyst team, my primary responsibility is to analyze smart device tracker data and gain valuable insights on how consumers are using one of our products. The board has tasked me with providing high-level recommendations on how these trends can inform Bellabeat's marketing strategy, with the aim of revealing new growth opportunities for the company. Through my analysis, I will identify trends, patterns, and opportunities that can be leveraged to drive growth and achieve our shared goals. The insights I have discovered will be presented in this report, along with my recommendations on how best to incorporate them into our marketing strategies.
+
+#### 1.2 Key Stakeholders
+* Urška Sršen: cofounder and CCO
+* Sando Mur: Mathematician and Bellabeat’s cofounder; key member of the Bellabeat executive team
+* Marketing analytics team: A team of data analysts responsible for collecting, analyzing, and
+reporting data.
+
+#### 1.3 Statement of business task
+Analyze smart device tracker data to gain insight into how consumers are using their smart devices to guide marketing strategy for the company to reveal growth opportunities.
+
+### PHASE 2: Prepare
+
+#### 2.1 Data governance
+
+**Data source**
+
+The dataset used in this analysis was obtained from public source with a CC0: Public Domain license. It is available on the Kaggle platform, uploaded by Mobius. To access the dataset, click on [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit). This Kaggle dataset contains personal fitness tracker data from thirty Fitbit users and includes information about daily activity, steps, and heart rate that can be used to explore users’ habits.
+
+**Data integrity**
+
+The dataset was collected from 30 eligible Fitbit users who consented to submitting personal tracker data, including minute-level output for physical activity, heart rate, and sleep monitoring. The dataset complies with the ROCCC property, as it is reliable, original, comprehensive, current (with an expected update frequency of annually), and cited.  
+However, the sample size of the dataset can be considered insufficient. As we will see later on, it only covers 31 continuous days (from mid-April to mid-May) and includes only 33 unique participants who were randomly selected. To achieve a more accurate analysis, further information is necessary. Nevertheless, at this point, some revealing trends and insights have been observed.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# nrow(distinct(dly_slp_merged, activity_day)) # As total unique days
+# [31]
+# nrow(distinct(dly_slp_merged, id)) # As total unique users
+# [33]
+``` 
+
+#### 2.2 Tools and data setup
+
+**R and RStudio**
+
+I have chosen R for the data analysis process. Therefore, RStudio is the IDE selected for developing the current analysis and report. All the necessary functions will be stored in a .R file named "Bellabeat_Project_DRP.R". Then, the different code chunks used for the analysis will be included in the current report in the "Bellabeat_Project_DRP.Rmd" file.
+
+**Packages**
+
+To conduct a comprehensive and accurate analysis, several R packages were installed using the `install.packages("")` function. These include: tidyverse, skimr, janitor, readr, rmarkdown, lubridate and here. Following installation, the packages were loaded using the `library()` function.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Loading libraries
+library(tidyverse)
+library(ggplot2)
+library(skimr)
+library(janitor)
+library(readr)
+library(rmarkdown)
+library(here)
+library(dplyr)
+library(lubridate)
+``` 
+
+**Data storage**
+
+The aforementioned dataset consists in 18 .csv files that are split into three main categories: daily, hourly and minutes. For this analysis, I will be using the dailyActivity_merged and sleepDay_merged data frames, which have been stored locally and uploaded into RStudio using the `read_csv()` and `here()` functions.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Importing data frame into RStudio. Each table will be stored in an independent variable
+daily_activity <- read_csv(here("Fitabase_Data", "dailyActivity_merged.csv"))
+sleep_activity <- read_csv(here("Fitabase_Data", "sleepDay_merged.csv"))
+``` 
+
+### PHASE 3: Process
+
+#### 3.1 Data Cleaning
+
+**Exploring the data**
+
+Becoming familiar with tables, rows and data is the first part of the data cleaning process. For each table, I utilized the `view()`, `summary()`, `skim()` and `colnames()` functions.
+
+***Daily activity summary information***
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+#|Data Summary         |Values          |
+#|---------------------|----------------|
+#|Name                 | daily_activity |
+#|Number of rows       |            940 |
+#|Number of columns    |             15 |
+                
+# Column type frequency  
+# character 1
+# numeric 14
+
+# Group variables: None
+``` 
+
+***Sleep activity summary information***
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+#|Data Summary         |Values          |
+#|---------------------|----------------|
+#|Name                 | sleep_activity |
+#|Number of rows       |            403 |
+#|Number of columns    |              5 |
+                
+# Column type frequency  
+# character 1
+# numeric 4
+
+# Group variables: None
+``` 
+
+#### 3.2 Data Wrangling
+
+Using the `summary()` function, I observed that the date columns in both tables were of the character class. To rectify this, I used the `mutate()` function to change the data type. Additionally, I cleaned the column names using the `clean_names()` function.  Next, I merged the two clean tables for easier querying. Finally, I checked for duplicate records and remove them, saved the cleaned tables as .csv files and removed unnecessary objects from the workspace.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Changing 'char' data type to 'date' and cleaning all column names
+  
+dly_act_cleaned <- daily_activity %>% 
+  mutate(ActivityDate = as.Date(ActivityDate, format = "%m/%d/%Y")) %>%
+  clean_names() %>% # Clean all names
+  rename(activity_day = activity_date)
+
+slp_act_cleaned <- sleep_activity %>%
+  mutate(SleepDay = as.Date(SleepDay, format = "%m/%d/%Y")) %>%
+  clean_names()
+
+# Joining tables. Left join dly_act_cleaned and slp_act_cleaned (dplyr)
+dly_slp_merged <- dly_act_cleaned %>% 
+  left_join(slp_act_cleaned, by = c('id'='id', 'activity_day'='sleep_day'))
+
+# Find and remove duplicate records; and drop subset
+#duplicated(dly_slp_merged)
+dly_slp_merged <- dly_slp_merged[!duplicated(dly_slp_merged),]
+
+# Creat a new .csv file with clean tables
+write_csv(dly_act_cleaned, "daily_activity_cleaned.csv")
+write_csv(slp_act_cleaned, "sleep_activity_cleaned.csv")
+
+# Delete spare objects from workspace
+rm(daily_activity)
+rm(sleep_activity)
+rm(dly_act_cleaned)
+rm(slp_act_cleaned)
+``` 
+
+At the end of the cleaning process, only one data frame was left for filtering, summarizing and data vizualization. This data frame is __dly_slp_merged__, and I also saved it as a .csv file using the `write_csv()` function as a backup.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+head(dly_slp_merged)
+write_csv(dly_slp_merged, "daily_sleep_merged.csv")
+``` 
+
+### PHASE 4: Analyze
+
+#### 4.1 Filtering and summarizing
+
+After analyzing and processing the data frames, the next steps typically involve filtering and summarizing the data to extract meaningful insights. In this context, one may link activities such as distance covered and logged activities to sleep patterns on each weekday, converting dates in weekdays. This can help identify correlations and patterns that may be useful for optimizing one's daily routine and improving overall well-being. By filtering and summarizing the data in this way, it becomes easier to identify trends and make informed decisions based on the insights gained from the analysis.
+
+I was curious to find patterns related with weekdays, so the first I convert dates in weekdays creating a new column with the new data. This way, I am able to group the data according with the seven days of a week and see what happen in each day. Every time I join data or add new information, I check that the data frame has the same records using `nrow()` function.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Adding weekday column to data frame
+dly_slp_merged$weekday <- weekdays(dly_slp_merged$activity_day)
+
+# Create .csv file with joined data frames
+write_csv(dly_slp_merged, "daily_sleep_merged")
+
+# Total unique users and unique date activities
+nrow(distinct(dly_slp_merged, id)) # Total unique users
+nrow(distinct(dly_slp_merged, activity_day))# Total unique dates
+```
+
+From here, I perform several filtering and summarizing functions to compile the data frame to see interesting data relations and find out some patterns.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Summarizing min, max, avg using "dly_slp_merged" data frame
+distance_summarize <- dly_slp_merged %>%
+  group_by(id) %>%
+  summarise(min_distance = min(total_distance), max_distance = max(total_distance), mean_distance = mean(total_distance), mean_calories = mean(calories)) %>%
+  arrange(desc(mean_calories))
+
+date_summarize <- dly_slp_merged %>%
+  group_by(activity_day) %>%
+  summarise(min_distance = min(total_distance), max_distance = max(total_distance), mean_distance = mean(total_distance)) %>%
+  arrange(activity_day)
+
+distance_detail_wday <- dly_slp_merged %>%
+  group_by(weekday) %>%
+  summarise(total_very_active = sum(very_active_distance), total_mod_active = sum(moderately_active_distance), total_light_active = sum(light_active_distance), total_sedentary_active = sum(sedentary_active_distance))
+```
+
+I was interested in finding out the number of sleeping activities that had been recorded, and what I discovered was quite intriguing. According to the information I found, less than 45% of users had recorded their sleep activity.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+sleep_logged_record <- dly_slp_merged %>% 
+  mutate(sleep_record = case_when(total_sleep_records >= 1 ~ "recorded", TRUE ~ "not_recorded")) %>%
+  count(sleep_record)
+```
+
+Continuing with the users logged information, I want to display the total logged activities the users have been recorded, and I have surprised that less than 5% of the total activities the devices have tracked have been logged by the users. This mean that users hardly ever used activity log functions.
+After seeing this, I got deeper linking those activity records with the weekdays.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Total number of users that really logged their training
+user_activity_logged <- dly_slp_merged %>% 
+  mutate(activities = case_when(logged_activities_distance == 0 ~ "not_logged", TRUE ~ "logged")) %>%
+  count(activities) %>% 
+  rename(count_logged_activities = n)
+
+# When have users logged their activities
+logged_act_per_wday <- dly_slp_merged %>% 
+  filter(logged_activities_distance > 0) %>% 
+  group_by(weekday) %>% 
+  summarise(count_logged_activities = length(weekday)) %>% 
+  arrange(desc(count_logged_activities))
+```
+
+Finally, I look for some information related with the dream activity. According to sleep specialists the optimum sleep time range every human being need is between 8-9 hours a day. Furthermore, from those studies, I am able to group them into into five categories:
+
+* **Deficient**: the sleep activity log is less than 4 hours
+* **Regular**: the sleep activity log is between 4-5 hours
+* **Good**: the sleep activity log is in the range between 5-7 hours 
+* **Optimum**: the sleep activity log is between 7-9 hours
+* **Lapsed**: when the sleep activity log surpass the 9 hours
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Total sleep recorded days per sleep status (deficient, regular, good, optimum and lapsed)
+count_sleep_status <- dly_slp_merged %>% 
+  mutate(sleep_range = case_when(total_minutes_asleep < 239 ~ "< 4 hr", total_minutes_asleep >= 240 & total_minutes_asleep < 300 ~ "4-5 hr", total_minutes_asleep >= 300 & total_minutes_asleep < 420 ~ "5-7 hs", total_minutes_asleep >= 420 & total_minutes_asleep <= 540 ~ "7-9 hs", TRUE ~ ">9 hs")) %>% 
+  mutate(sleep_status = case_when(total_minutes_asleep < 239 ~ "deficient", total_minutes_asleep >= 240 & total_minutes_asleep < 300 ~ "regular", total_minutes_asleep >= 300 & total_minutes_asleep < 420 ~ "good", total_minutes_asleep >= 420 & total_minutes_asleep <= 540 ~ "optimum", TRUE ~ "lapsed")) %>% 
+  filter(total_sleep_records >= 1) %>% 
+  group_by(sleep_range) %>% 
+  count(sleep_status) %>% 
+  rename(total_recorded_days = n)
+
+# Relation between sleep status and average distance covered
+sleep_status_distance <- dly_slp_merged %>%
+  mutate(sleep_status = case_when(total_minutes_asleep < 239 ~ "deficient", total_minutes_asleep >= 240 & total_minutes_asleep < 300 ~ "regular", total_minutes_asleep >= 300 & total_minutes_asleep < 420 ~ "good", total_minutes_asleep >= 420 & total_minutes_asleep <= 540 ~ "optimum", TRUE ~ "lapsed")) %>% 
+  filter(total_sleep_records >= 1) %>% 
+  group_by(sleep_status)  %>% 
+  summarise(mean_total_distance = mean(total_distance))
+
+# Join data frames count_sleep_status with sleep_status_distance
+sleep_status_mean_distance <- count_sleep_status %>% 
+  inner_join(sleep_status_distance, by = "sleep_status")
+
+# Delete former tables
+rm(count_sleep_status)
+rm(sleep_status_distance)
+``` 
+
+### PHASE 5: Share
+
+Data visualization is the last phase of the data analysis process, where I create visual representations of data to communicate the insights and patterns I have found. It plays a crucial role in aiding decision-making processes and identifying trends. Effective visualizations can reveal patterns, trends, and relationships that might otherwise go unnoticed, making it an essential tool for any data analyst.
+
+The pie chart displays the percentage of logged activities by smart device users. The chart shows that the majority of the activities haven't been logged, the only represent the 3,4%. 
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Display the % of logged activity by users
+ggplot(user_activity_logged, aes(x="", y= count_logged_activities, fill=activities, label = count_logged_activities)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  scale_fill_brewer(palette = "Blues") +
+  theme_void() +
+  geom_text(size = 3.2, hjust = 2.7) +
+  ggtitle("Percentage of logged activity by users")
+``` 
+
+The following chart shows the number of logged activities have been recorded by smart devices grouped by weekdays. As we can see, there is a clear trend where users start logging their activities at the beginning of the week, Mondays, and decline over the week. On weekends there is no data activity logged by any user.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Display logged activities per weekday
+ggplot(logged_act_per_wday, aes(x = weekday, y = count_logged_activities)) +
+  geom_bar(stat = "identity", fill = "#9ecae1") +
+  scale_x_discrete(limits = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")) +
+  theme(axis.text = element_text(size = 9)) +
+  geom_text(aes(label = count_logged_activities), vjust = -1, colour = "black") +
+  ylim(c(0, 10)) +
+  ggtitle("Logged activities per weekday")
+``` 
+
+The next chart reveals interesting information about the total kilometers traveled per weekday. The line graph shows the trend in total distance traveled over the course of the week, which may reveal patterns or trends in travel behavior. The addition of point colors and labels provides further insight into how different trip details might affect the total distance traveled on a given day. The variation in the total distance of light activity from day to day is what makes the difference, as is evident from the data.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+distance_detail_wday_transposed <- read_delim("distance_detail_wday_transposed.csv", 
+                                              delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+# Display total distance per weekday
+ggplot(distance_detail_wday_transposed, aes(km, weekday, label = km)) +
+  geom_line(aes(group = weekday)) +
+  geom_point(aes(color = detail)) +
+  xlim(0, 600) +
+  geom_text(aes(color = detail), size = 3.2, vjust = -1) +
+  ggtitle("Total distance per weekday")
+``` 
+
+The pie chart represents the percentage of recorded sleep activity by smart device users. Almost the half of the sleep activity have been recorder, accounting for 43% of the total.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Portion of recorded sleep
+ggplot(sleep_logged_record, aes(x="", y= n, fill=sleep_record, label = n)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  scale_fill_brewer(palette = "Blues") +
+  theme_void() +
+  geom_text(size = 3.2, vjust = -9) +
+  ggtitle("Percentage of recorded sleep activity by user")
+``` 
+
+According to sleep specialists, the optimum sleep time range for every human being is between 8-9 hours a day. Based on data analysis, it was found that the majority of users who logged their sleep activity fell into the "Good" or "Optimum" categories. Specifically, the data showed that 32% of users had a sleep activity log within the "Good" range of 5-7 hours, while 46% fell into the "Optimum" range of 7-9 hours. This indicates that a large proportion of users are getting an appropriate amount of sleep, which is in line with the recommended range.
+
+```{r echo = TRUE, collapse = TRUE, results = 'hold, error = FALSE'}
+# Show the sleep status from the recorded sleep
+ggplot(sleep_status_mean_distance, aes(fill=sleep_status, y=total_recorded_days, x=sleep_range)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_fill_brewer() +
+  geom_text(aes(label = total_recorded_days), vjust = -0.5, colour = "black") +
+  ggtitle("Sleep logged status")
+``` 
+
+---
+
+## Conclusions
+1. Only **3.4% of the users** have **logged** their **activities**, which may be due to a lack of awareness or interest in tracking their physical activity.
+2. **Monday** is the day with the **highest** amount of **logged activity**, while there is no logged activity on weekends. This may be due to differences in daily routines and schedules between weekdays and weekends.
+3. The total distance captured by the devices was similar throughout the weekdays, but the **main variation** was explained by the total **light activity**. This may be due to differences in the types of activities users engage in during the week.
+4. Only **43% of the users** have **recorded** their **sleep activity**, which may be due to a lack of awareness of the importance of tracking sleep or difficulty in accurately recording sleep data.
+5. According to sleep logged records, **78% of users** have enjoyed **good or optimum sleep**, which means they could sleep in a range of 5 to 9 hours a day. This may be due to the fact that most users are getting enough sleep to support their overall health and well-being.
+
+Overall, these findings suggest that there may be room for **improvement** in terms of **users' awareness and engagement** with their health and well-being, particularly with regards to **tracking physical activity and sleep**. By encouraging users to engage more with their health data and highlighting the benefits of doing so, it may be possible to improve overall health outcomes and promote healthier habits and behaviors.
+
+## Recommendations for marketing strategy
+The trends identified in the data analysis can be used by Bellabeat to influence their marketing strategy in several ways:
+
+**1. Encourage more users to track their physical activity**: Given the low percentage of users who are logging their physical activities, Bellabeat could focus their marketing efforts on promoting the benefits of tracking physical activity, such as improved fitness and overall health. For example, they could create targeted advertising campaigns or social media content that emphasizes the importance of physical activity and how their devices can help users track their progress.
+
+**2. Highlight the importance of sleep tracking**: With only 43% of users logging their sleep activity, Bellabeat could focus on educating users about the importance of tracking sleep and the benefits of doing so. They could create content that emphasizes the link between sleep and overall health, and how their devices can help users improve their sleep habits.
+
+**3. Personalize recommendations for light activity**: The data suggests that the main variation in physical activity levels is explained by light activity. Bellabeat could use this information to provide personalized recommendations for increasing light activity throughout the week. For example, they could develop features that encourage users to take short walks during breaks or use stairs instead of elevators.
+
+**4. Target marketing efforts around weekdays**: Given that Monday is the day with the most logged activity, Bellabeat could target their marketing efforts around weekdays, emphasizing how their devices can help users maintain a consistent level of physical activity throughout the week.
+
+By using these trends to inform their marketing strategy, a health devices company can create more targeted and effective campaigns that resonate with their users and encourage them to engage more with their health data.
